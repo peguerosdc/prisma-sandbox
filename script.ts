@@ -2,12 +2,16 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-async function thisWorks() {
+async function base() {
   const root = await prisma.profile.create({
     data: {},
   });
-  const profile = await prisma.profile.update({
-    where: { id: root.id },
+  return root.id;
+}
+
+async function thisWorks(id: string) {
+  await prisma.profile.update({
+    where: { id },
     data: {
       many: {
         deleteMany: {},
@@ -20,12 +24,9 @@ async function thisWorks() {
   console.log(":) Creating and deleting in 1-n worked!")
 }
 
-async function thisDoesntWork() {
-  const root = await prisma.profile.create({
-    data: {},
-  });
-  const profile = await prisma.profile.update({
-    where: { id: root.id },
+async function thisDoesntWork(id: string) {
+  await prisma.profile.update({
+    where: { id },
     data: {
       one: {
         delete: true,
@@ -36,13 +37,13 @@ async function thisDoesntWork() {
   console.log(":( Creating and deleting in 1-1 DOESN'T work!")
 }
 
-async function thisIsTheWorkaround() {
-  const root = await prisma.profile.create({
-    data: {},
+async function thisIsTheWorkaround(id: string) {
+  const root = await prisma.profile.findUniqueOrThrow({
+    where: { id },
     include: { one: true }
-  });
-  const profile = await prisma.profile.update({
-    where: { id: root.id },
+  })
+  await prisma.profile.update({
+    where: { id },
     data: {
       one: root.one ? {
         delete: true,
@@ -53,7 +54,8 @@ async function thisIsTheWorkaround() {
   console.log(":) Creating and deleting in 1-1 works, but I need one extra go to the db!")
 }
 
-thisIsTheWorkaround()
+base()
+  .then(thisIsTheWorkaround)
   .then(async () => {
     await prisma.$disconnect()
   })
