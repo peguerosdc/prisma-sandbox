@@ -15,13 +15,10 @@ async function thisWorks(id: string) {
     data: {
       many: {
         deleteMany: {},
-        createMany: {
-          data: [{}]
-        }
       }
     }
   });
-  console.log(":) Creating and deleting in 1-n worked!")
+  console.log(":) Deleting in 1-n worked!")
 }
 
 async function thisDoesntWork(id: string) {
@@ -30,11 +27,10 @@ async function thisDoesntWork(id: string) {
     data: {
       one: {
         delete: true,
-        create: {}
       }
     }
   });
-  console.log(":( Creating and deleting in 1-1 DOESN'T work!")
+  console.log(":( Deleting in 1-1 DOESN'T work!")
 }
 
 async function thisIsTheWorkaround(id: string) {
@@ -46,12 +42,11 @@ async function thisIsTheWorkaround(id: string) {
     where: { id },
     data: {
       one: root.one ? {
-        delete: true,
-        create: {}
-      } : { create: {} }
+        delete: true
+      } : undefined
     }
   });
-  console.log(":) Creating and deleting in 1-1 works, but I need one extra go to the db!")
+  console.log(":) Deleting in 1-1 works, but I need one extra go to the db!")
 }
 
 base()
